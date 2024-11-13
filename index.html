@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Camera Capture</title>
+
+</head>
+
+<body>
+
+  <table>
+    <tr>
+      <td>
+        <video id="video" width="450" height="280" autoplay></video>
+        <canvas id="canvas" width="450" height="280" style="display: none"></canvas>
+
+      </td>
+      <td>
+        <img id="photo" alt="Your Photo" width="380" height="280" />
+      </td>
+      <td>
+        <table style="background-color: pink">
+          <tr>
+            <td>No:</td>
+            <td id="No">---</td>
+          </tr>
+          <tr>
+            <td>Name:</td>
+            <td id="Name">---</td>
+          </tr>
+          <tr>
+            <td>Birth Date:</td>
+            <td id="BirthDate">---</td>
+          </tr>
+          <tr>
+            <td>Nationality:</td>
+            <td id="Nationality">---</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+  <button id="capture">Take Picture</button>
+
+
+
+  <button id="RecognitionText">Text Recognition</button>
+
+
+
+  <script src="camera.js?v=x234"></script>
+</body>
+
+</html>
