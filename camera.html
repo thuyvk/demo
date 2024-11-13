@@ -8,56 +8,48 @@
 </head>
 
 <body>
+  <div>
+    <video id="camera" autoplay style="display: none; width: 100%; height: auto;"></video>
+    <canvas id="canvas" style="display: none;"></canvas>
+  </div>
+  <div>
+    <img id="photo" alt="Your Photo" width="100%" style="border: solid 1px green;" />
+  </div>
   <table>
     <tr>
+      <td>ID Number</td>
       <td>
-        <video id="camera" autoplay style="display: none; width: 100%; height: auto;"></video>
-        <canvas id="canvas" style="display: none;"></canvas>
-      </td>
-      <td>
-        <img id="photo" alt="Your Photo" width="100%" style="border: solid 1px green;" />
-        <hr />
-        <table>
-          <tr>
-            <td>ID Number</td>
-            <td>
-              <input type="text" id="txtIdNumber" />
-            </td>
-          </tr>
-          <tr>
-            <td>Date Of Birth</td>
-            <td>
-              <input type="text" id="txtDateOfBirth" />
-            </td>
-          </tr>
-          <tr>
-            <td>Full Name</td>
-            <td>
-              <input type="text" id="txtFullName" />
-            </td>
-          </tr>
-          <tr>
-            <td>Nationality</td>
-            <td>
-              <input type="text" id="txtNationality" />
-            </td>
-          </tr>
-        </table>
+        <input type="text" id="txtIdNumber" />
       </td>
     </tr>
     <tr>
-      <td colspan="2">
-        <br />
-        <button id="stopCameraButton">Stop Camera</button>
-        <br />
-        <br />
-        <button id="captureButton">Capture ID</button>
-        <br />
-
+      <td>Date Of Birth</td>
+      <td>
+        <input type="text" id="txtDateOfBirth" />
       </td>
-
+    </tr>
+    <tr>
+      <td>Full Name</td>
+      <td>
+        <input type="text" id="txtFullName" />
+      </td>
+    </tr>
+    <tr>
+      <td>Nationality</td>
+      <td>
+        <input type="text" id="txtNationality" />
+      </td>
     </tr>
   </table>
+  <div>
+    <br />
+    <button id="openCameraButton">Open Camera</button>
+    <br />
+    <br />
+    <button id="captureButton">Confirm</button>
+    <br />
+  </div>
+
 
   <script>
     const button = document.getElementById('openCameraButton');
@@ -67,21 +59,17 @@
     const captureButton = document.getElementById('captureButton');
     const photo = document.getElementById("photo");
 
-    navigator.mediaDevices.getUserMedia({ video: true })
-      .then(stream => {
+    button.addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
         video.srcObject = stream;
-        video.style.display = 'block'
-      })
-      .catch(error => {
-        console.error('Error accessing camera:', error);
-      });
-
-    stopButton.addEventListener('click', () => {
-      const stream = video.srcObject;
-      const tracks = stream.getTracks();
-      tracks.forEach(track => track.stop());
-      video.style.display = 'none'; // Hide the video when the camera is off
+        video.style.display = 'block'; // Show the video when the camera is on
+        photo.src = '';
+      } catch (error) {
+        console.error('Error accessing the camera:', error);
+      }
     });
+
 
     //CAPTURE AND CALL GOOGLE VISION API
     captureButton.addEventListener('click', () => {
