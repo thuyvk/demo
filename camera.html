@@ -4,8 +4,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Camera Capture</title>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode-generator/1.4.4/qrcode.min.js"></script>
+  <title>Mobile Camera Capture</title>
 </head>
 
 <body>
@@ -49,18 +48,12 @@
     <tr>
       <td colspan="2">
         <br />
-        <button id="openCameraButton">Open Camera</button>
-        <br />
-        <br />
         <button id="stopCameraButton">Stop Camera</button>
         <br />
         <br />
         <button id="captureButton">Capture ID</button>
         <br />
-        <br />
-        Your device don't have a camera. Pair with your phone?
-        <br />
-        <div id="qrcode"></div>
+
       </td>
 
     </tr>
@@ -74,16 +67,14 @@
     const captureButton = document.getElementById('captureButton');
     const photo = document.getElementById("photo");
 
-    button.addEventListener('click', async () => {
-      try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+    navigator.mediaDevices.getUserMedia({ video: true })
+      .then(stream => {
         video.srcObject = stream;
-        video.style.display = 'block'; // Show the video when the camera is on
-        photo.src = '';
-      } catch (error) {
-        console.error('Error accessing the camera:', error);
-      }
-    });
+        video.style.display = 'block'
+      })
+      .catch(error => {
+        console.error('Error accessing camera:', error);
+      });
 
     stopButton.addEventListener('click', () => {
       const stream = video.srcObject;
@@ -337,14 +328,6 @@
       return normalizedText.toLowerCase();
     }
 
-    //GENERATIION QRCODE
-    let qr = qrcode(0, 'L');
-    qr.addData("/phone-camera.html?token=xxx");
-    qr.width = 128;
-    qr.height = 128;
-    qr.make();
-    let qrImg = qr.createImgTag(4);  // Adjust the scale by setting a numeric value (4 here)
-    document.getElementById('qrcode').innerHTML = qrImg;
 
   </script>
 </body>
