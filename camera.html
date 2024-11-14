@@ -9,7 +9,7 @@
 
 <body>
   <div>
-    <img id="photo" alt="Your Photo" width="400" style="border: solid 1px green;"
+    <img id="photo" alt="Your Photo" style="border: solid 1px green; width:100%; max-width: 400px;"
       src="https://cdn.vectorstock.com/i/500p/33/47/no-photo-available-icon-default-image-symbol-vector-40343347.jpg" />
     <hr />
   </div>
@@ -27,7 +27,8 @@
     <br />
   </div>
   <div id="resultCapture"></div>
-
+  <textarea id="txtImgData">
+</textarea>
 
   <script>
     const button = document.getElementById('openCameraButton');
@@ -77,15 +78,17 @@
       video.style.display = 'none'; // Hide the video when the camera is off
     }
 
+    document.getElementById("txtImgData").addEventListener("click", function () {
+      const textarea = this;
+      textarea.select(); // Select all content in the textarea
+      document.execCommand("copy"); // Copy the selected content to clipboard
+    });
 
     //CAPTURE AND CALL GOOGLE VISION API
     captureButton.addEventListener('click', () => {
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
-
-      alert(canvas.width);
-      alert(canvas.height);
 
       //stop camera
       stopCamera();
@@ -97,6 +100,9 @@
       // Convert canvas to image data URL and display it in an <img> element
       let dataUrl = canvas.toDataURL("image/jpg");
       photo.src = dataUrl;
+
+      console.log('**********', dataUrl);
+      document.getElementById('txtImgData').value = dataUrl;
 
       const base64Image = dataUrl.split(',')[1];
       //call google vision api
