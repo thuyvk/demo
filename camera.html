@@ -41,8 +41,8 @@
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 1000 },
-            height: { ideal: 700 },
+            width: { ideal: 800 },
+            height: { ideal: 600 },
             facingMode: "user" // "user" for front camera, "environment" for rear camera
           }
         });
@@ -57,8 +57,8 @@
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 1000 },
-            height: { ideal: 700 },
+            width: { ideal: 800 },
+            height: { ideal: 600 },
             facingMode: "environment" // "user" for front camera, "environment" for rear camera
           }
         });
@@ -84,6 +84,9 @@
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
+      alert(canvas.width);
+      alert(canvas.height);
+
       //stop camera
       stopCamera();
 
@@ -92,9 +95,10 @@
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
       // Convert canvas to image data URL and display it in an <img> element
-      photo.src = canvas.toDataURL("image/jpg");
+      let dataUrl = canvas.toDataURL("image/jpg");
+      photo.src = dataUrl;
 
-      const base64Image = canvas.toDataURL("image/jpg").split(',')[1];
+      const base64Image = dataUrl.split(',')[1];
       //call google vision api
       const myHeaders = new Headers();
       myHeaders.append("Content-Type", "application/json");
