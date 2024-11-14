@@ -108,6 +108,9 @@
         .then((response) => response.json())
         .then((result) => {
           try {
+            document.getElementById('resultCapture').innerHTML = JSON.stringify(result);
+            return;
+
             const { textAnnotations } = result.responses[0];
             const { description } = textAnnotations[0];
 
