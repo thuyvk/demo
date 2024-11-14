@@ -14,8 +14,8 @@
   </div>
   <div>
     <br />
-    <button id="openCameraButton">Open Selfie Camera</button>
-    <button id="openBackCameraButton" style="margin-left: 50px;">Open Main Camera</button>
+    <button id="openCameraButton" style="width: 150px; height: 40px;">Open Selfie Camera</button>
+    <button id="openBackCameraButton" style="margin-left: 30px; width: 150px; height: 40px;">Open Main Camera</button>
     <br />
     <br />
     <button id="captureButton" style="width: 100px; height: 40px;">Confirm</button>
@@ -37,7 +37,7 @@
         video.srcObject = stream;
         video.style.display = 'block'; // Show the video when the camera is on
       } catch (error) {
-        openBackCameraButton.click()
+        document.getElementById('resultCapture').innerHTML = error.Message;
       }
     });
 
@@ -48,7 +48,7 @@
         video.srcObject = stream;
         video.style.display = 'block'; // Show the video when the camera is on
       } catch (error) {
-        console.error('Error accessing the camera:', error);
+        button.click();
       }
     });
 
@@ -112,6 +112,7 @@
             const { description } = textAnnotations[0];
 
             if (!description) {
+              document.getElementById('resultCapture').innerHTML = textAnnotations;
               alert('Invalid CCCD!');
               return;
             }
