@@ -32,6 +32,17 @@
     const canvas = document.getElementById('canvas');
     const captureButton = document.getElementById('captureButton');
 
+    const textarea = document.getElementById('base64ImgCode');
+
+    textarea.addEventListener('click', () => {
+      // Select all text in the textarea
+      textarea.select();
+      // Copy the selected text to the clipboard
+      document.execCommand('copy');
+      // Optionally, display a message
+      alert("Text copied to clipboard!");
+    });
+
     button.addEventListener('click', async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
