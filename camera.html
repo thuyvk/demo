@@ -33,7 +33,13 @@
 
     button.addEventListener('click', async () => {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            facingMode: "user" // "user" for front camera, "environment" for rear camera
+          }
+        });
         video.srcObject = stream;
         video.style.display = 'block'; // Show the video when the camera is on
       } catch (error) {
@@ -43,8 +49,13 @@
 
     openBackCameraButton.addEventListener('click', async () => {
       try {
-
-        const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } });
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 1920 },
+            height: { ideal: 1080 },
+            facingMode: "environment" // "user" for front camera, "environment" for rear camera
+          }
+        });
         video.srcObject = stream;
         video.style.display = 'block'; // Show the video when the camera is on
       } catch (error) {
