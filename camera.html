@@ -13,80 +13,65 @@
     <canvas id="canvas" style="display: none;"></canvas>
   </div>
   <div>
-    <img id="photo" alt="Your Photo" width="100%" style="border: solid 1px green;" />
-  </div>
-  <table>
-    <tr>
-      <td>ID Number</td>
-      <td>
-        <input type="text" id="txtIdNumber" />
-      </td>
-    </tr>
-    <tr>
-      <td>Date Of Birth</td>
-      <td>
-        <input type="text" id="txtDateOfBirth" />
-      </td>
-    </tr>
-    <tr>
-      <td>Full Name</td>
-      <td>
-        <input type="text" id="txtFullName" />
-      </td>
-    </tr>
-    <tr>
-      <td>Nationality</td>
-      <td>
-        <input type="text" id="txtNationality" />
-      </td>
-    </tr>
-  </table>
-  <div>
     <br />
-    <button id="openCameraButton">Open Camera</button>
+    <button id="openCameraButton">Open Selfie Camera</button>
+    <button id="openBackCameraButton" style="margin-left: 50px;">Open Main Camera</button>
     <br />
     <br />
-    <button id="captureButton">Confirm</button>
+    <button id="captureButton" style="width: 100px; height: 40px;">Confirm</button>
     <br />
   </div>
+  <div id="resultCapture"></div>
 
 
   <script>
     const button = document.getElementById('openCameraButton');
-    const stopButton = document.getElementById('stopCameraButton');
+    const buttonCameraBack = document.getElementById('openBackCameraButton');
     const video = document.getElementById('camera');
     const canvas = document.getElementById('canvas');
     const captureButton = document.getElementById('captureButton');
-    const photo = document.getElementById("photo");
 
     button.addEventListener('click', async () => {
       try {
         const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { exact: "environment" } } });
         video.srcObject = stream;
         video.style.display = 'block'; // Show the video when the camera is on
-        photo.src = '';
+      } catch (error) {
+        openBackCameraButton.click()
+      }
+    });
+
+    openBackCameraButton.addEventListener('click', async () => {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+        video.style.display = 'block'; // Show the video when the camera is on
       } catch (error) {
         console.error('Error accessing the camera:', error);
       }
     });
 
 
+    function stopCamera() {
+      const stream = video.srcObject;
+      const tracks = stream.getTracks();
+      tracks.forEach(track => track.stop());
+      video.style.display = 'none'; // Hide the video when the camera is off
+    }
+
+
     //CAPTURE AND CALL GOOGLE VISION API
     captureButton.addEventListener('click', () => {
-
 
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
 
       //stop camera
-      stopButton.click();
+      stopCamera();
 
 
       const context = canvas.getContext("2d");
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
-
-      // Convert canvas to image data URL and display it in an <img> element
-      photo.src = canvas.toDataURL("image/png");
 
       const base64Image = canvas.toDataURL().split(',')[1];
       //call google vision api
@@ -130,10 +115,14 @@
               return;
             }
 
-            document.getElementById('txtIdNumber').value = getIdNumber(description);
-            document.getElementById('txtDateOfBirth').value = getBirthOfDate(description);
-            document.getElementById('txtFullName').value = getFullName(description);
-            document.getElementById('txtNationality').value = getNationality(description);
+            console.log('OK!!!')
+
+            let message = getIdNumber(description);
+            message += '\n' + getBirthOfDate(description);
+            message += '\n' + getFullName(description);
+            message += '\n' + getNationality(description);
+
+            document.getElementById('resultCapture').innerHTML = message;
 
             //test
             //console.log(RemoveUnuseText(description))
