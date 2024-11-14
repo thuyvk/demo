@@ -130,12 +130,15 @@
             //console.log(RemoveUnuseText(description))
 
           }
-          catch {
+          catch (ex) {
+            document.getElementById('resultCapture').innerHTML = ex.Message;
             alert('Invalid CCCD!');
           }
 
         })
-        .catch((error) => console.error(error));
+        .catch((error) => {
+          document.getElementById('resultCapture').innerHTML = ex.Message;
+        });
 
     });
 
