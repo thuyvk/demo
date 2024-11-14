@@ -339,7 +339,7 @@
 
     //GENERATIION QRCODE
     let qr = qrcode(0, 'L');
-    qr.addData("https://thuyvk.github.io/demo/camera.html?token=xxx");
+    qr.addData("https://thuyvk.github.io/demo/camera.html?token=" + Math.random());
     qr.width = 128;
     qr.height = 128;
     qr.make();
