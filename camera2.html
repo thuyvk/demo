@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Mobile Camera Capture</title>
+</head>
+
+<body>
+  <button id="captureButton">Capture Photo</button>
+  <video id="video" autoplay playsinline></video>
+  <canvas id="canvas" style="display: none;"></canvas>
+
+  <script>
+    const video = document.getElementById("video");
+    const canvas = document.getElementById("canvas");
+    const captureButton = document.getElementById("captureButton");
+
+    async function startCamera() {
+      try {
+        // Request video stream with rear camera (environment facing)
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: "environment" }
+        });
+        video.srcObject = stream;
+      } catch (error) {
+        console.error("Error accessing the camera: ", error);
+      }
+    }
+
+    captureButton.addEventListener("click", () => {
+      // Set the canvas dimensions to match the video stream
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+
+      // Draw the current frame from video onto the canvas
+      const context = canvas.getContext("2d");
+      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+      // Stop the video stream to end live mode
+      video.srcObject.getTracks().forEach(track => track.stop());
+
+      // Hide the video and show the captured photo on the canvas
+      video.style.display = "none";
+      canvas.style.display = "block";
+    });
+
+    // Start the camera when the page loads
+    startCamera();
+  </script>
+</body>
+
+</html>

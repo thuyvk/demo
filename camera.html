@@ -31,6 +31,7 @@
 </textarea>
 
   <script>
+    let dataUrl;
     const button = document.getElementById('openCameraButton');
     const buttonCameraBack = document.getElementById('openBackCameraButton');
     const video = document.getElementById('camera');
@@ -97,8 +98,14 @@
       const context = canvas.getContext("2d");
       context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
+      // Optionally, stop the video stream
+      //video.srcObject.getTracks().forEach(track => track.stop());
+
+      // Optionally, display the captured photo
+      //canvas.style.display = "block";
+
       // Convert canvas to image data URL and display it in an <img> element
-      let dataUrl = canvas.toDataURL("image/jpg");
+      dataUrl = canvas.toDataURL("image/jpg");
       photo.src = dataUrl;
 
       console.log('**********', dataUrl);
