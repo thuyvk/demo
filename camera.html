@@ -52,8 +52,8 @@
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            width: { ideal: 1000 },
+            height: { ideal: 700 },
             facingMode: "user" // "user" for front camera, "environment" for rear camera
           }
         });
@@ -68,8 +68,8 @@
       try {
         const stream = await navigator.mediaDevices.getUserMedia({
           video: {
-            width: { ideal: 1920 },
-            height: { ideal: 1080 },
+            width: { ideal: 1000 },
+            height: { ideal: 700 },
             facingMode: "environment" // "user" for front camera, "environment" for rear camera
           }
         });
