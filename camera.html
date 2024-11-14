@@ -94,7 +94,7 @@
       // Convert canvas to image data URL and display it in an <img> element
       photo.src = canvas.toDataURL("image/jpg");
 
-      const base64Image = canvas.toDataURL().split(',')[1];
+      const base64Image = canvas.toDataURL("image/jpg").split(',')[1];
       //call google vision api
       const myHeaders = new Headers();
       myHeaders.append("Content-Type", "application/json");
