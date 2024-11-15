@@ -38,17 +38,53 @@
       const canvas = document.getElementById("canvas");
       const captureButton = document.getElementById("captureButton");
 
-      async function startCamera() {
-        try {
-          // Request video stream with rear camera (environment facing)
-          const stream = await navigator.mediaDevices.getUserMedia({
-            video: { facingMode: "environment" },
-          });
+      // Request video stream with rear camera (environment facing)
+      // const stream = await navigator.mediaDevices.getUserMedia({
+      //       video: { facingMode: "environment" },
+      //     });
+      //     video.srcObject = stream;
+
+      const constraints = {
+        video: {
+          width: { ideal: 1280 }, // Higher resolution for better clarity
+          height: { ideal: 720 },
+          facingMode: "environment",
+          focusMode: { ideal: "continuous" }, // Autofocus if available
+          zoom: { ideal: 1.5 }, // Slight zoom to focus on the ID card area (if supported)
+        },
+      };
+
+      navigator.mediaDevices
+        .getUserMedia(constraints)
+        .then((stream) => {
           video.srcObject = stream;
-        } catch (error) {
-          alert(error.Message);
+          video.play();
+        })
+        .catch((error) => console.error("Camera access failed:", error));
+
+      // Draw a guide box for ID card alignment
+      video.addEventListener("loadeddata", () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        function draw() {
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Customize the guide box dimensions for the ID card
+          const boxWidth = 320; // Adjust as per ID card size
+          const boxHeight = 200;
+          const boxX = (canvas.width - boxWidth) / 2;
+          const boxY = (canvas.height - boxHeight) / 2;
+
+          context.strokeStyle = "green";
+          context.lineWidth = 3;
+          context.strokeRect(boxX, boxY, boxWidth, boxHeight);
+
+          requestAnimationFrame(draw);
         }
-      }
+
+        draw();
+      });
 
       captureButton.addEventListener("click", () => {
         // Set the canvas dimensions to match the video stream
@@ -66,9 +102,6 @@
         video.style.display = "none";
         canvas.style.display = "block";
       });
-
-      // Start the camera when the page loads
-      startCamera();
     </script>
   </body>
 </html>
