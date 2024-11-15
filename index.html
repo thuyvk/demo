@@ -88,7 +88,6 @@
         </td>
       </tr>
     </table>
-    <input type="hidden" id="formId" value="865468468" />
 
     <script>
       let _formId = Math.random().toString().split(".")[1];
@@ -664,10 +663,7 @@
 
       //GENERATIION QRCODE
       let qr = qrcode(0, "L");
-      qr.addData(
-        "https://thuyvk.github.io/demo/camera2.html?cid=" +
-          document.getElementById("formId").value
-      );
+      qr.addData("https://thuyvk.github.io/demo/camera2.html?cid=" + _formId);
       qr.width = 128;
       qr.height = 128;
       qr.make();
