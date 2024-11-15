@@ -5,6 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Camera Focus on ID Card</title>
     <style>
+      #video {
+        width: 100%;
+        height: 75vh;
+        object-fit: cover;
+        /* Adjusts the video to fill the area without distortion */
+      }
       canvas {
         position: absolute;
         top: 0;
@@ -36,10 +42,8 @@
       navigator.mediaDevices
         .getUserMedia({
           video: {
-            width: { ideal: 800 },
-            height: { ideal: 600 },
             facingMode: "environment", // "user" for front camera, "environment" for rear camera
-            focusMode: { ideal: "auto" },
+            focusMode: "manual",
           },
         })
         .then((stream) => {
