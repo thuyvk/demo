@@ -3,69 +3,113 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Camera Focus on ID Card</title>
+    <title>ID Card Auto-Capture</title>
     <style>
-      #video {
+      /* Basic styles for video and overlay */
+      body {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        margin: 0;
+        background-color: #222;
+        color: white;
+      }
+      #video-container {
+        position: relative;
+      }
+      video {
         width: 100%;
-        height: 75vh;
-        object-fit: cover;
-        /* Adjusts the video to fill the area without distortion */
+        height: auto;
+        border-radius: 10px;
+      }
+      #overlay {
+        position: absolute;
+        border: 4px dashed #00ff00;
+        width: 80%;
+        height: 40%;
+        top: 30%;
+        left: 10%;
+        box-sizing: border-box;
+      }
+      #status {
+        text-align: center;
+        margin-top: 15px;
+      }
+      canvas {
+        display: none;
       }
     </style>
   </head>
   <body>
-    <div style="position: relative; width: 100%">
-      <div
-        style="
-          display: flex;
-          justify-content: center;
-          align-items: center;
-          padding-bottom: 10px;
-        "
-      >
-        <video id="video" autoplay playsinline></video>
-        <canvas id="canvas" style="display: none"></canvas>
-      </div>
-      <div style="display: flex; justify-content: center; align-items: center">
-        <button id="captureButton" style="width: 150px; height: 40px">
-          Capture Photo
-        </button>
-      </div>
-      <div id="resultCapture"></div>
+    <div id="video-container">
+      <video id="video" autoplay muted playsinline></video>
+      <div id="overlay"></div>
     </div>
+    <div id="status">Align the ID card within the rectangle.</div>
+    <canvas id="canvas"></canvas>
+
     <script>
+      // Start the camera and set up video streaming
       const video = document.getElementById("video");
       const canvas = document.getElementById("canvas");
-      const captureButton = document.getElementById("captureButton");
+      const status = document.getElementById("status");
 
-      // Request video stream with rear camera (environment facing)
-      // const stream = await navigator.mediaDevices.getUserMedia({
-      //       video: { facingMode: "environment" },
-      //     });
-      //     video.srcObject = stream;
-
-      const stream = await navigator.mediaDevices.getUserMedia({
+      async function startCamera() {
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
             video: { facingMode: "environment" },
-            audio: false
           });
           video.srcObject = stream;
 
-      captureButton.addEventListener("click", () => {
-        // Set the canvas dimensions to match the video stream
+          // Simulate card detection (in practice, use TensorFlow.js or another detection library)
+          video.addEventListener("play", detectIDCard);
+        } catch (error) {
+          console.error("Error accessing camera: ", error);
+          status.textContent = "Camera access failed. Please try again.";
+        }
+      }
+
+      function detectIDCard() {
+        // Simulated detection logic (in real use, replace with ML detection)
+        let cardDetected = false;
+
+        const detectionInterval = setInterval(() => {
+          // Simulate detection within overlay (use an ML model here for real detection)
+          const overlay = document
+            .getElementById("overlay")
+            .getBoundingClientRect();
+          const videoBounds = video.getBoundingClientRect();
+
+          // Example logic: if something is centered within the overlay, assume it's detected
+          // Here we just randomly toggle detection for demonstration
+          cardDetected = !cardDetected;
+
+          if (cardDetected) {
+            clearInterval(detectionInterval);
+            status.textContent = "ID Card detected! Capturing in 3 seconds...";
+            setTimeout(captureImage, 3000);
+          } else {
+            status.textContent = "Align the ID card within the rectangle.";
+          }
+        }, 1000); // Check every second
+      }
+
+      function captureImage() {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
-
-        // Draw the current frame from video onto the canvas
         const context = canvas.getContext("2d");
         context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-        // Stop the video stream to end live mode
-        video.srcObject.getTracks().forEach((track) => track.stop());
+        const imageData = canvas.toDataURL("image/png");
+        console.log("Captured Image Data URL:", imageData);
 
-        // Hide the video and show the captured photo on the canvas
-        video.style.display = "none";
-        canvas.style.display = "block";
-      });
+        // Display capture status
+        status.textContent = "Image captured!";
+      }
+
+      // Start the camera on page load
+      startCamera();
     </script>
   </body>
 </html>
