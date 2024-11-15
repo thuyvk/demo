@@ -14,45 +14,61 @@
     </style>
   </head>
   <body>
-    <video id="video" autoplay playsinline></video>
-    <canvas id="canvas"></canvas>
+    <div style="position: relative; width: 100%">
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding-bottom: 10px;
+        "
+      >
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas" style="display: none"></canvas>
+      </div>
+      <div style="display: flex; justify-content: center; align-items: center">
+        <button id="captureButton" style="width: 150px; height: 40px">
+          Capture Photo
+        </button>
+      </div>
+      <div id="resultCapture"></div>
+    </div>
     <script>
       const video = document.getElementById("video");
       const canvas = document.getElementById("canvas");
-      const context = canvas.getContext("2d");
+      const captureButton = document.getElementById("captureButton");
 
-      // Access camera with constraints
-      navigator.mediaDevices
-        .getUserMedia(constraints)
-        .then((stream) => {
+      async function startCamera() {
+        try {
+          // Request video stream with rear camera (environment facing)
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+          });
           video.srcObject = stream;
-          video.play();
-        })
-        .catch((error) => console.error("Camera access failed", error));
+        } catch (error) {
+          console.error("Error accessing the camera: ", error);
+        }
+      }
 
-      // Draw guide on canvas
-      video.addEventListener("loadeddata", () => {
+      captureButton.addEventListener("click", () => {
+        // Set the canvas dimensions to match the video stream
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
 
-        function draw() {
-          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Draw the current frame from video onto the canvas
+        const context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          // Draw guide box
-          const boxWidth = 300; // Adjust for ID card size
-          const boxHeight = 100;
-          const boxX = (canvas.width - boxWidth) / 2;
-          const boxY = (canvas.height - boxHeight) / 2;
+        // Stop the video stream to end live mode
+        video.srcObject.getTracks().forEach((track) => track.stop());
 
-          context.strokeStyle = "green";
-          context.lineWidth = 3;
-          context.strokeRect(boxX, boxY, boxWidth, boxHeight);
-
-          requestAnimationFrame(draw);
-        }
-
-        draw();
+        // Hide the video and show the captured photo on the canvas
+        video.style.display = "none";
+        canvas.style.display = "block";
       });
+
+      // Start the camera when the page loads
+      startCamera();
     </script>
   </body>
 </html>
