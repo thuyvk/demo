@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Camera Focus on ID Card</title>
+    <style>
+      canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
+      }
+      .focus-box {
+        position: absolute;
+        border: 2px solid #00ff00;
+        width: 300px; /* Adjust as needed */
+        height: 200px; /* Adjust as needed */
+        top: 50%; /* Centered on canvas */
+        left: 50%;
+        transform: translate(-50%, -50%);
+        box-sizing: border-box;
+      }
+    </style>
+  </head>
+  <body>
+    <video id="video" autoplay playsinline style="display: none"></video>
+    <canvas id="canvas"></canvas>
+    <div class="focus-box"></div>
+
+    <script>
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const context = canvas.getContext("2d");
+
+      // Set up the camera feed
+      navigator.mediaDevices
+        .getUserMedia({ video: true })
+        .then((stream) => {
+          video.srcObject = stream;
+          video.play();
+        })
+        .catch((error) => {
+          console.error("Error accessing the camera", error);
+        });
+
+      // Draw the video onto the canvas
+      video.addEventListener("loadeddata", () => {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+
+        function draw() {
+          context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+          // Drawing the focus guide (optional: customize color/thickness)
+          const boxWidth = 300;
+          const boxHeight = 200;
+          const boxX = (canvas.width - boxWidth) / 2;
+          const boxY = (canvas.height - boxHeight) / 2;
+
+          context.strokeStyle = "#00FF00";
+          context.lineWidth = 2;
+          context.strokeRect(boxX, boxY, boxWidth, boxHeight);
+
+          requestAnimationFrame(draw);
+        }
+
+        draw();
+      });
+
+      // Optional: Capture image within focus box when user clicks or presses a key
+      function capture() {
+        const boxWidth = 300;
+        const boxHeight = 200;
+        const boxX = (canvas.width - boxWidth) / 2;
+        const boxY = (canvas.height - boxHeight) / 2;
+
+        // Get the image data from within the focus box
+        const imageData = context.getImageData(boxX, boxY, boxWidth, boxHeight);
+
+        // Here you can further process or save imageData
+      }
+
+      // Event listener for capturing (e.g., on a button click)
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "c") {
+          capture();
+        }
+      });
+    </script>
+  </body>
+</html>
