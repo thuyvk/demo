@@ -34,7 +34,13 @@
 
       // Set up the camera feed
       navigator.mediaDevices
-        .getUserMedia({ video: true })
+        .getUserMedia({
+          video: {
+            width: { ideal: 800 },
+            height: { ideal: 600 },
+            facingMode: "user", // "user" for front camera, "environment" for rear camera
+          },
+        })
         .then((stream) => {
           video.srcObject = stream;
           video.play();
