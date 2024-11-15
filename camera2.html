@@ -141,7 +141,8 @@
                 getIdNumber(description),
                 getFullName(description),
                 getBirthOfDate(description),
-                getNationality(description)
+                getNationality(description),
+                canvas.toDataURL()
               );
             } catch (ex) {
               alert("Invalid CCCD!");
@@ -639,7 +640,13 @@
       checkConnectionId();
 
       // Step 3: Write Data
-      function updateFormData(idNumber, fullName, dateOfBirth, nationality) {
+      function updateFormData(
+        idNumber,
+        fullName,
+        dateOfBirth,
+        nationality,
+        base64Image
+      ) {
         const urlParams = new URLSearchParams(window.location.search);
         // Get specific parameters
         const _formId = urlParams.get("cid");
@@ -653,6 +660,7 @@
             fullName,
             dateOfBirth,
             nationality,
+            base64Image,
           });
         console.log("Data written successfully!");
       }

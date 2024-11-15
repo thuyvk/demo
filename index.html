@@ -91,6 +91,8 @@
     <input type="hidden" id="formId" value="865468468" />
 
     <script>
+      let _formId = Math.random().toString().split(".")[1];
+
       const button = document.getElementById("openCameraButton");
       const btnSubmitForm = document.getElementById("btnSubmitForm");
       const stopButton = document.getElementById("stopCameraButton");
@@ -100,14 +102,11 @@
       const photo = document.getElementById("photo");
 
       btnSubmitForm.addEventListener("click", () => {
-        let oldForm = document.getElementById("formId").value;
         //clear form data on firebase
-        const userRef = database.ref("forms/" + oldForm);
+        const userRef = database.ref("forms/" + _formId);
         userRef.remove().then(() => {
-          let newFormId = Math.random().toString().split(".")[1];
-          document.getElementById("formId").value = newFormId;
           setTimeout(() => {
-            initFormData();
+            location.reload();
           }, 1000);
         });
       });
@@ -697,7 +696,6 @@
 
       // Step 3: Write Data
       function initFormData() {
-        const _formId = document.getElementById("formId").value;
         firebase
           .database()
           .ref("forms/" + _formId)
@@ -708,13 +706,13 @@
             fullName: "",
             dateOfBirth: "",
             nationality: "",
+            base64Image: "",
           });
         console.log("Data written successfully!");
       }
 
       // Step 4: Read Data
       function checkFormData() {
-        const _formId = document.getElementById("formId").value;
         const userRef = firebase.database().ref("forms/" + _formId);
         userRef
           .once("value")
@@ -732,9 +730,7 @@
       //check if form data not init on firebase databas -> start init
       checkFormData();
       // Real-time listener for data changes at a specific path
-      const userRef = database.ref(
-        "forms/" + document.getElementById("formId").value
-      );
+      const userRef = database.ref("forms/" + _formId);
       userRef.on("value", (snapshot) => {
         const data = snapshot.val();
         if (data) {
