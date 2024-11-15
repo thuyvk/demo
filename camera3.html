@@ -14,6 +14,7 @@
         margin: 0;
         background-color: #222;
         color: white;
+        flex-direction: column;
       }
       #video-container {
         position: relative;
@@ -42,18 +43,30 @@
     </style>
   </head>
   <body>
-    <div id="video-container">
+    <div id="video-container" style="width: 100%">
       <video id="video" autoplay muted playsinline></video>
       <div id="overlay"></div>
     </div>
-    <div id="status">Align the ID card within the rectangle.</div>
-    <canvas id="canvas"></canvas>
+    <div id="status" style="width: 100%">
+      Align the ID card within the rectangle.
+    </div>
+    <canvas id="canvas" style="width: 100%"></canvas>
+    <div style="width: 100%; text-align: center; padding: 20px 0px">
+      <button id="btnRetake" style="width: 150px; height: 40px">
+        Retake Identity Card
+      </button>
+    </div>
 
     <script>
       // Start the camera and set up video streaming
       const video = document.getElementById("video");
       const canvas = document.getElementById("canvas");
       const status = document.getElementById("status");
+      const btnReTake = document.getElementById("btnRetake");
+
+      btnReTake.addEventListener("click", () => {
+        startCamera();
+      });
 
       async function startCamera() {
         try {
