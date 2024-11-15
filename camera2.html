@@ -1,306 +1,661 @@
 <!DOCTYPE html>
 <html lang="en">
-
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Mobile Camera Capture</title>
-  <style>
-    #video {
-      width: 100%;
-      height: 75vh;
-      object-fit: cover;
-      /* Adjusts the video to fill the area without distortion */
-    }
-  </style>
-</head>
-
-<body style="background-color: #333;">
-
-  <div style="position: relative; width: 100%;">
-    <div style="display: flex; justify-content: center; align-items: center; padding-bottom: 10px;">
-      <video id="video" autoplay playsinline></video>
-      <canvas id="canvas" style="display: none;"></canvas>
-    </div>
-    <div style="display: flex; justify-content: center; align-items: center;">
-      <button id="captureButton" style="width: 150px; height: 40px;">Capture Photo</button>
-    </div>
-    <div id="resultCapture"></div>
-
-  </div>
-
-  <script>
-    const video = document.getElementById("video");
-    const canvas = document.getElementById("canvas");
-    const captureButton = document.getElementById("captureButton");
-
-    async function startCamera() {
-      try {
-        // Request video stream with rear camera (environment facing)
-        const stream = await navigator.mediaDevices.getUserMedia({
-          video: { facingMode: "environment" }
-        });
-        video.srcObject = stream;
-      } catch (error) {
-        console.error("Error accessing the camera: ", error);
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mobile Camera Capture</title>
+    <style>
+      #video {
+        width: 100%;
+        height: 75vh;
+        object-fit: cover;
+        /* Adjusts the video to fill the area without distortion */
       }
-    }
+    </style>
+    <!-- Firebase SDKs for compatibility mode -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
+  </head>
 
-    captureButton.addEventListener("click", () => {
-      // Set the canvas dimensions to match the video stream
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
+  <body style="background-color: #333">
+    <div style="position: relative; width: 100%">
+      <div
+        style="
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          padding-bottom: 10px;
+        "
+      >
+        <video id="video" autoplay playsinline></video>
+        <canvas id="canvas" style="display: none"></canvas>
+      </div>
+      <div style="display: flex; justify-content: center; align-items: center">
+        <button id="captureButton" style="width: 150px; height: 40px">
+          Capture Photo
+        </button>
+      </div>
+      <div id="resultCapture"></div>
+    </div>
 
-      // Draw the current frame from video onto the canvas
-      const context = canvas.getContext("2d");
-      context.drawImage(video, 0, 0, canvas.width, canvas.height);
+    <script>
+      // Step 1: Add Firebase configuration
+      const firebaseConfig = {
+        apiKey: "AIzaSyDBoXaH5iupPe2bdfYaviKff6skjbqlqbM",
+        authDomain: "delivery-5105.firebaseapp.com",
+        databaseURL: "https://delivery-5105.firebaseio.com",
+        projectId: "delivery-5105",
+        storageBucket: "delivery-5105.appspot.com",
+        messagingSenderId: "1084972945461",
+        appId: "1:1084972945461:web:1fa28cd70e85bfcf89617c",
+      };
+      // Step 2: Initialize Firebase
+      const app = firebase.initializeApp(firebaseConfig);
+      const database = firebase.database();
 
-      // Stop the video stream to end live mode
-      video.srcObject.getTracks().forEach(track => track.stop());
+      const video = document.getElementById("video");
+      const canvas = document.getElementById("canvas");
+      const captureButton = document.getElementById("captureButton");
 
-      // Hide the video and show the captured photo on the canvas
-      video.style.display = "none";
-      canvas.style.display = "block";
+      async function startCamera() {
+        try {
+          // Request video stream with rear camera (environment facing)
+          const stream = await navigator.mediaDevices.getUserMedia({
+            video: { facingMode: "environment" },
+          });
+          video.srcObject = stream;
+        } catch (error) {
+          console.error("Error accessing the camera: ", error);
+        }
+      }
 
-      const base64Image = canvas.toDataURL().split(',')[1];
-      //call google vision api
-      const myHeaders = new Headers();
-      myHeaders.append("Content-Type", "application/json");
+      captureButton.addEventListener("click", () => {
+        // Set the canvas dimensions to match the video stream
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
 
-      const raw = JSON.stringify({
-        requests: [
-          {
-            image: {
-              content: base64Image,
-            },
-            features: [
-              {
-                type: "TEXT_DETECTION",
+        // Draw the current frame from video onto the canvas
+        const context = canvas.getContext("2d");
+        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+        // Stop the video stream to end live mode
+        video.srcObject.getTracks().forEach((track) => track.stop());
+
+        // Hide the video and show the captured photo on the canvas
+        video.style.display = "none";
+        canvas.style.display = "block";
+
+        const base64Image = canvas.toDataURL().split(",")[1];
+        //call google vision api
+        const myHeaders = new Headers();
+        myHeaders.append("Content-Type", "application/json");
+
+        const raw = JSON.stringify({
+          requests: [
+            {
+              image: {
+                content: base64Image,
               },
-            ],
-          },
-        ],
+              features: [
+                {
+                  type: "TEXT_DETECTION",
+                },
+              ],
+            },
+          ],
+        });
+
+        const requestOptions = {
+          method: "POST",
+          headers: myHeaders,
+          body: raw,
+          redirect: "follow",
+        };
+
+        fetch(
+          "https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDw3lCD1ZopT-18Ftcj9Jlv2EIWXFKDyYY",
+          requestOptions
+        )
+          .then((response) => response.json())
+          .then((result) => {
+            try {
+              const { textAnnotations } = result.responses[0];
+              const { description } = textAnnotations[0];
+
+              if (!description) {
+                alert("Invalid CCCD!");
+                return;
+              }
+
+              // console.log("OK!!!");
+
+              // let message = getIdNumber(description);
+              // message += "\n" + getBirthOfDate(description);
+              // message += "\n" + getFullName(description);
+              // message += "\n" + getNationality(description);
+
+              // document.getElementById("resultCapture").innerHTML = message;
+
+              //update data to firebase database
+              updateFormData(
+                getIdNumber(description),
+                getFullName(description),
+                getBirthOfDate(description),
+                getNationality(description)
+              );
+            } catch (ex) {
+              alert("Invalid CCCD!");
+            }
+          })
+          .catch((error) => {
+            document.getElementById("resultCapture").innerHTML = ex.Message;
+          });
       });
 
-      const requestOptions = {
-        method: "POST",
-        headers: myHeaders,
-        body: raw,
-        redirect: "follow",
-      };
+      // Start the camera when the page loads
+      startCamera();
 
-      fetch(
-        "https://vision.googleapis.com/v1/images:annotate?key=AIzaSyDw3lCD1ZopT-18Ftcj9Jlv2EIWXFKDyYY",
-        requestOptions
-      )
-        .then((response) => response.json())
-        .then((result) => {
-          try {
+      //GET TEXT FIELD DATA FROM GOOGLE API REPONSE
+      function getIdNumber(fullTextAnnotation) {
+        // Regex to match a 9-digit or 12-digit ID number
+        const idNumberRegex = /\b\d{9}\b|\b\d{12}\b/;
 
-            const { textAnnotations } = result.responses[0];
-            const { description } = textAnnotations[0];
+        // Assuming `fullTextAnnotation` contains the text from Google Vision API
+        const match = fullTextAnnotation.match(idNumberRegex);
 
-            if (!description) {
-              alert('Invalid CCCD!');
-              return;
-            }
-
-            console.log('OK!!!')
-
-            let message = getIdNumber(description);
-            message += '\n' + getBirthOfDate(description);
-            message += '\n' + getFullName(description);
-            message += '\n' + getNationality(description);
-
-            document.getElementById('resultCapture').innerHTML = message;
-
-            //test
-            //console.log(RemoveUnuseText(description))
-
-          }
-          catch (ex) {
-            alert('Invalid CCCD!');
-          }
-
-        })
-        .catch((error) => {
-          document.getElementById('resultCapture').innerHTML = ex.Message;
-        });
-    });
-
-    // Start the camera when the page loads
-    startCamera();
-
-    //GET TEXT FIELD DATA FROM GOOGLE API REPONSE
-    function getIdNumber(fullTextAnnotation) {
-      // Regex to match a 9-digit or 12-digit ID number
-      const idNumberRegex = /\b\d{9}\b|\b\d{12}\b/;
-
-      // Assuming `fullTextAnnotation` contains the text from Google Vision API
-      const match = fullTextAnnotation.match(idNumberRegex);
-
-      if (match) {
-        const idNumber = match[0].trim();
-        return idNumber
-      } else {
-        return "";
-      }
-    }
-
-    function getBirthOfDate(fullTextAnnotation) {
-      try {
-        // Regular expression to find dates in dd/MM/yyyy format
-        const dateRegex = /\b(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[0-2])\/(\d{4})\b/g;
-
-        const match = fullTextAnnotation.match(dateRegex);
         if (match) {
-          if (match.length > 1)
-            return match[1]; // Returns the date in dd/MM/yyyy format
-          else
-            return match[0]
+          const idNumber = match[0].trim();
+          return idNumber;
         } else {
-          return ''; // If no date is found
+          return "";
         }
       }
-      catch {
-        return '';
+
+      function getBirthOfDate(fullTextAnnotation) {
+        try {
+          // Regular expression to find dates in dd/MM/yyyy format
+          const dateRegex =
+            /\b(0?[1-9]|[12][0-9]|3[01])\/(0?[1-9]|1[0-2])\/(\d{4})\b/g;
+
+          const match = fullTextAnnotation.match(dateRegex);
+          if (match) {
+            if (match.length > 1)
+              return match[1]; // Returns the date in dd/MM/yyyy format
+            else return match[0];
+          } else {
+            return ""; // If no date is found
+          }
+        } catch {
+          return "";
+        }
       }
 
-    }
+      function getFullName(textData) {
+        try {
+          let validArray = RemoveUnuseText(textData);
+          let fullName = "";
+          for (let i = 0; i < validArray.length; i++) {
+            let compareText = normalizeText(validArray[i]);
+            if (
+              compareText.indexOf("full na") !== -1 ||
+              compareText.indexOf("ho va") !== -1
+            ) {
+              fullName = validArray[i + 1];
+              break;
+            }
+          }
+          return fullName;
+        } catch {
+          return "";
+        }
+      }
 
-    function getFullName(textData) {
-      try {
-        let validArray = RemoveUnuseText(textData);
-        let fullName = "";
-        for (let i = 0; i < validArray.length; i++) {
-          let compareText = normalizeText(validArray[i]);
-          if (compareText.indexOf("full na") !== -1 || compareText.indexOf("ho va") !== -1) {
-            fullName = validArray[i + 1];
-            break;
+      function getNationality(textData) {
+        try {
+          let validArray = RemoveUnuseText(textData);
+          let nationality = "";
+          for (let i = 0; i < validArray.length; i++) {
+            let compareText = normalizeText(validArray[i]);
+            if (
+              compareText.indexOf("nation") !== -1 ||
+              compareText.indexOf("quoc tich") !== -1
+            ) {
+              nationality = validArray[i];
+            }
+          }
+          return getCountryName(nationality);
+        } catch {
+          return "";
+        }
+      }
+
+      function getCountryName(textData) {
+        try {
+          const countryNames = [
+            "Afghanistan",
+            "Albania",
+            "Algeria",
+            "Andorra",
+            "Angola",
+            "Antigua and Barbuda",
+            "Argentina",
+            "Armenia",
+            "Australia",
+            "Austria",
+            "Azerbaijan",
+            "Bahamas",
+            "Bahrain",
+            "Bangladesh",
+            "Barbados",
+            "Belarus",
+            "Belgium",
+            "Belize",
+            "Benin",
+            "Bhutan",
+            "Bolivia",
+            "Bosnia and Herzegovina",
+            "Botswana",
+            "Brazil",
+            "Brunei",
+            "Bulgaria",
+            "Burkina Faso",
+            "Burundi",
+            "Cabo Verde",
+            "Cambodia",
+            "Cameroon",
+            "Canada",
+            "Central African Republic",
+            "Chad",
+            "Chile",
+            "China",
+            "Colombia",
+            "Comoros",
+            "Congo",
+            "Costa Rica",
+            "Croatia",
+            "Cuba",
+            "Cyprus",
+            "Czechia",
+            "Denmark",
+            "Djibouti",
+            "Dominica",
+            "Dominican Republic",
+            "Ecuador",
+            "Egypt",
+            "El Salvador",
+            "Equatorial Guinea",
+            "Eritrea",
+            "Estonia",
+            "Eswatini",
+            "Ethiopia",
+            "Fiji",
+            "Finland",
+            "France",
+            "Gabon",
+            "Gambia",
+            "Georgia",
+            "Germany",
+            "Ghana",
+            "Greece",
+            "Grenada",
+            "Guatemala",
+            "Guinea",
+            "Guinea-Bissau",
+            "Guyana",
+            "Haiti",
+            "Honduras",
+            "Hungary",
+            "Iceland",
+            "India",
+            "Indonesia",
+            "Iran",
+            "Iraq",
+            "Ireland",
+            "Israel",
+            "Italy",
+            "Jamaica",
+            "Japan",
+            "Jordan",
+            "Kazakhstan",
+            "Kenya",
+            "Kiribati",
+            "Korea, North",
+            "Korea, South",
+            "Kuwait",
+            "Kyrgyzstan",
+            "Laos",
+            "Latvia",
+            "Lebanon",
+            "Lesotho",
+            "Liberia",
+            "Libya",
+            "Liechtenstein",
+            "Lithuania",
+            "Luxembourg",
+            "Madagascar",
+            "Malawi",
+            "Malaysia",
+            "Maldives",
+            "Mali",
+            "Malta",
+            "Marshall Islands",
+            "Mauritania",
+            "Mauritius",
+            "Mexico",
+            "Micronesia",
+            "Moldova",
+            "Monaco",
+            "Mongolia",
+            "Montenegro",
+            "Morocco",
+            "Mozambique",
+            "Myanmar",
+            "Namibia",
+            "Nauru",
+            "Nepal",
+            "Netherlands",
+            "New Zealand",
+            "Nicaragua",
+            "Niger",
+            "Nigeria",
+            "North Macedonia",
+            "Norway",
+            "Oman",
+            "Pakistan",
+            "Palau",
+            "Palestine",
+            "Panama",
+            "Papua New Guinea",
+            "Paraguay",
+            "Peru",
+            "Philippines",
+            "Poland",
+            "Portugal",
+            "Qatar",
+            "Romania",
+            "Russia",
+            "Rwanda",
+            "Saint Kitts and Nevis",
+            "Saint Lucia",
+            "Saint Vincent and the Grenadines",
+            "Samoa",
+            "San Marino",
+            "Sao Tome and Principe",
+            "Saudi Arabia",
+            "Senegal",
+            "Serbia",
+            "Seychelles",
+            "Sierra Leone",
+            "Singapore",
+            "Slovakia",
+            "Slovenia",
+            "Solomon Islands",
+            "Somalia",
+            "South Africa",
+            "South Sudan",
+            "Spain",
+            "Sri Lanka",
+            "Sudan",
+            "Suriname",
+            "Sweden",
+            "Switzerland",
+            "Syria",
+            "Taiwan",
+            "Tajikistan",
+            "Tanzania",
+            "Thailand",
+            "Timor-Leste",
+            "Togo",
+            "Tonga",
+            "Trinidad and Tobago",
+            "Tunisia",
+            "Turkey",
+            "Turkmenistan",
+            "Tuvalu",
+            "Uganda",
+            "Ukraine",
+            "United Arab Emirates",
+            "United Kingdom",
+            "United States",
+            "Uruguay",
+            "Uzbekistan",
+            "Vanuatu",
+            "Venezuela",
+            "Việt Nam",
+            "Yemen",
+            "Zambia",
+            "Zimbabwe",
+          ];
+          const foundCountries = [];
+          for (const country of countryNames) {
+            const regex = new RegExp(`\\b${country}\\b`, "i");
+            if (regex.test(textData)) {
+              foundCountries.push(country);
+            }
+          }
+          return foundCountries.length > 0 ? foundCountries[0] : "";
+        } catch {
+          return "";
+        }
+      }
+
+      function RemoveUnuseText(responseText) {
+        let arrString = responseText.split("\n");
+        let newArray = [];
+        for (let i = 0; i < arrString.length; i++) {
+          let compareText = normalizeText(arrString[i]);
+          if (
+            compareText.indexOf("cong hoa xa hoi") === -1 &&
+            compareText.indexOf("doc lap") === -1 &&
+            compareText.indexOf("socialist republic") === -1 &&
+            compareText.indexOf("independence") === -1 &&
+            compareText.indexOf("can cuoc cong") === -1 &&
+            compareText.indexOf("identity") === -1 &&
+            compareText.indexOf("co gia tri") === -1 &&
+            compareText.indexOf("khong thoi han") === -1
+          ) {
+            newArray.push(arrString[i]);
           }
         }
-        return fullName;
-      } catch {
-        return "";
+        return newArray;
       }
-    }
 
-    function getNationality(textData) {
-      try {
-        let validArray = RemoveUnuseText(textData);
-        let nationality = "";
-        for (let i = 0; i < validArray.length; i++) {
-          let compareText = normalizeText(validArray[i]);
-          if (compareText.indexOf("nation") !== -1 || compareText.indexOf("quoc tich") !== -1) {
-            nationality = validArray[i];
-          }
+      function normalizeText(input) {
+        // Step 1: Remove Vietnamese diacritical marks
+        const vietnameseMap = {
+          á: "a",
+          à: "a",
+          ả: "a",
+          ã: "a",
+          ạ: "a",
+          ă: "a",
+          ắ: "a",
+          ằ: "a",
+          ẳ: "a",
+          ẵ: "a",
+          ặ: "a",
+          â: "a",
+          ấ: "a",
+          ầ: "a",
+          ẩ: "a",
+          ẫ: "a",
+          ậ: "a",
+          é: "e",
+          è: "e",
+          ẻ: "e",
+          ẽ: "e",
+          ẹ: "e",
+          ê: "e",
+          ế: "e",
+          ề: "e",
+          ể: "e",
+          ễ: "e",
+          ệ: "e",
+          í: "i",
+          ì: "i",
+          ỉ: "i",
+          ĩ: "i",
+          ị: "i",
+          ó: "o",
+          ò: "o",
+          ỏ: "o",
+          õ: "o",
+          ọ: "o",
+          ô: "o",
+          ố: "o",
+          ồ: "o",
+          ổ: "o",
+          ỗ: "o",
+          ộ: "o",
+          ơ: "o",
+          ớ: "o",
+          ờ: "o",
+          ở: "o",
+          ỡ: "o",
+          ợ: "o",
+          ú: "u",
+          ù: "u",
+          ủ: "u",
+          ũ: "u",
+          ụ: "u",
+          ư: "u",
+          ứ: "u",
+          ừ: "u",
+          ử: "u",
+          ữ: "u",
+          ự: "u",
+          ý: "y",
+          ỳ: "y",
+          ỷ: "y",
+          ỹ: "y",
+          ỵ: "y",
+          đ: "d",
+          Á: "A",
+          À: "A",
+          Ả: "A",
+          Ã: "A",
+          Ạ: "A",
+          Ă: "A",
+          Ắ: "A",
+          Ằ: "A",
+          Ẳ: "A",
+          Ẵ: "A",
+          Ặ: "A",
+          Â: "A",
+          Ấ: "A",
+          Ầ: "A",
+          Ẩ: "A",
+          Ẫ: "A",
+          Ậ: "A",
+          É: "E",
+          È: "E",
+          Ẻ: "E",
+          Ẽ: "E",
+          Ẹ: "E",
+          Ê: "E",
+          Ế: "E",
+          Ề: "E",
+          Ể: "E",
+          Ễ: "E",
+          Ệ: "E",
+          Í: "I",
+          Ì: "I",
+          Ỉ: "I",
+          Ĩ: "I",
+          Ị: "I",
+          Ó: "O",
+          Ò: "O",
+          Ỏ: "O",
+          Õ: "O",
+          Ọ: "O",
+          Ô: "O",
+          Ố: "O",
+          Ồ: "O",
+          Ổ: "O",
+          Ỗ: "O",
+          Ộ: "O",
+          Ơ: "O",
+          Ớ: "O",
+          Ờ: "O",
+          Ở: "O",
+          Ỡ: "O",
+          Ợ: "O",
+          Ú: "U",
+          Ù: "U",
+          Ủ: "U",
+          Ũ: "U",
+          Ụ: "U",
+          Ư: "U",
+          Ứ: "U",
+          Ừ: "U",
+          Ử: "U",
+          Ữ: "U",
+          Ự: "U",
+          Ý: "Y",
+          Ỳ: "Y",
+          Ỷ: "Y",
+          Ỹ: "Y",
+          Ỵ: "Y",
+          Đ: "D",
+        };
+
+        let normalizedText = input
+          .split("")
+          .map((char) => vietnameseMap[char] || char)
+          .join("");
+
+        // Step 2: Remove duplicate spaces
+        normalizedText = normalizedText.replace(/\s+/g, " ").trim();
+
+        return normalizedText.toLowerCase();
+      }
+
+      function checkFormData(_formId) {
+        const userRef = firebase.database().ref("forms/" + _formId);
+        userRef
+          .once("value")
+          .then((snapshot) => {
+            const data = snapshot.val();
+            if (!data) {
+              window.location.replace("https://bluejaypms.com/");
+            }
+          })
+          .catch((error) => {
+            window.location.replace("https://bluejaypms.com/");
+          });
+      }
+
+      //check connection id
+      function checkConnectionId() {
+        const urlParams = new URLSearchParams(window.location.search);
+        // Get specific parameters
+        const cid = urlParams.get("cid");
+        if (cid) {
+          checkFormData(cid);
+        } else {
+          window.location.replace("https://bluejaypms.com/");
         }
-        return getCountryName(nationality);
-      } catch {
-        return "";
       }
-    }
+      checkConnectionId();
 
-    function getCountryName(textData) {
-      try {
-        const countryNames = [
-          "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina",
-          "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados",
-          "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina",
-          "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde",
-          "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China",
-          "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia",
-          "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador",
-          "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France",
-          "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala",
-          "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Honduras", "Hungary", "Iceland", "India",
-          "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan",
-          "Kazakhstan", "Kenya", "Kiribati", "Korea, North", "Korea, South", "Kuwait", "Kyrgyzstan",
-          "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania",
-          "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta",
-          "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco",
-          "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal",
-          "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway",
-          "Oman", "Pakistan", "Palau", "Palestine", "Panama", "Papua New Guinea", "Paraguay", "Peru",
-          "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda",
-          "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino",
-          "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone",
-          "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa",
-          "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland",
-          "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo",
-          "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu",
-          "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States",
-          "Uruguay", "Uzbekistan", "Vanuatu", "Venezuela", "Việt Nam", "Yemen", "Zambia", "Zimbabwe"
-        ];
-        const foundCountries = [];
-        for (const country of countryNames) {
-          const regex = new RegExp(`\\b${country}\\b`, "i");
-          if (regex.test(textData)) {
-            foundCountries.push(country);
-          }
-        }
-        return foundCountries.length > 0 ? foundCountries[0] : '';
+      // Step 3: Write Data
+      function updateFormData(idNumber, fullName, dateOfBirth, nationality) {
+        const urlParams = new URLSearchParams(window.location.search);
+        // Get specific parameters
+        const _formId = urlParams.get("cid");
+        firebase
+          .database()
+          .ref("forms/" + _formId)
+          .set({
+            useId: "150",
+            timePost: new Date().toISOString(),
+            idNumber,
+            fullName,
+            dateOfBirth,
+            nationality,
+          });
+        console.log("Data written successfully!");
       }
-      catch {
-        return ''
-      }
-
-    }
-
-    function RemoveUnuseText(responseText) {
-      let arrString = responseText.split("\n");
-      let newArray = [];
-      for (let i = 0; i < arrString.length; i++) {
-        let compareText = normalizeText(arrString[i]);
-        if (
-          compareText.indexOf("cong hoa xa hoi") === -1 &&
-          compareText.indexOf("doc lap") === -1 &&
-          compareText.indexOf("socialist republic") === -1 &&
-          compareText.indexOf("independence") === -1 &&
-          compareText.indexOf("can cuoc cong") === -1 &&
-          compareText.indexOf("identity") === -1 &&
-          compareText.indexOf("co gia tri") === -1 &&
-          compareText.indexOf("khong thoi han") === -1
-        ) {
-          newArray.push(arrString[i]);
-        }
-      }
-      return newArray;
-    }
-
-    function normalizeText(input) {
-      // Step 1: Remove Vietnamese diacritical marks
-      const vietnameseMap = {
-        'á': 'a', 'à': 'a', 'ả': 'a', 'ã': 'a', 'ạ': 'a', 'ă': 'a', 'ắ': 'a', 'ằ': 'a', 'ẳ': 'a', 'ẵ': 'a', 'ặ': 'a',
-        'â': 'a', 'ấ': 'a', 'ầ': 'a', 'ẩ': 'a', 'ẫ': 'a', 'ậ': 'a',
-        'é': 'e', 'è': 'e', 'ẻ': 'e', 'ẽ': 'e', 'ẹ': 'e', 'ê': 'e', 'ế': 'e', 'ề': 'e', 'ể': 'e', 'ễ': 'e', 'ệ': 'e',
-        'í': 'i', 'ì': 'i', 'ỉ': 'i', 'ĩ': 'i', 'ị': 'i',
-        'ó': 'o', 'ò': 'o', 'ỏ': 'o', 'õ': 'o', 'ọ': 'o', 'ô': 'o', 'ố': 'o', 'ồ': 'o', 'ổ': 'o', 'ỗ': 'o', 'ộ': 'o',
-        'ơ': 'o', 'ớ': 'o', 'ờ': 'o', 'ở': 'o', 'ỡ': 'o', 'ợ': 'o',
-        'ú': 'u', 'ù': 'u', 'ủ': 'u', 'ũ': 'u', 'ụ': 'u', 'ư': 'u', 'ứ': 'u', 'ừ': 'u', 'ử': 'u', 'ữ': 'u', 'ự': 'u',
-        'ý': 'y', 'ỳ': 'y', 'ỷ': 'y', 'ỹ': 'y', 'ỵ': 'y',
-        'đ': 'd',
-        'Á': 'A', 'À': 'A', 'Ả': 'A', 'Ã': 'A', 'Ạ': 'A', 'Ă': 'A', 'Ắ': 'A', 'Ằ': 'A', 'Ẳ': 'A', 'Ẵ': 'A', 'Ặ': 'A',
-        'Â': 'A', 'Ấ': 'A', 'Ầ': 'A', 'Ẩ': 'A', 'Ẫ': 'A', 'Ậ': 'A',
-        'É': 'E', 'È': 'E', 'Ẻ': 'E', 'Ẽ': 'E', 'Ẹ': 'E', 'Ê': 'E', 'Ế': 'E', 'Ề': 'E', 'Ể': 'E', 'Ễ': 'E', 'Ệ': 'E',
-        'Í': 'I', 'Ì': 'I', 'Ỉ': 'I', 'Ĩ': 'I', 'Ị': 'I',
-        'Ó': 'O', 'Ò': 'O', 'Ỏ': 'O', 'Õ': 'O', 'Ọ': 'O', 'Ô': 'O', 'Ố': 'O', 'Ồ': 'O', 'Ổ': 'O', 'Ỗ': 'O', 'Ộ': 'O',
-        'Ơ': 'O', 'Ớ': 'O', 'Ờ': 'O', 'Ở': 'O', 'Ỡ': 'O', 'Ợ': 'O',
-        'Ú': 'U', 'Ù': 'U', 'Ủ': 'U', 'Ũ': 'U', 'Ụ': 'U', 'Ư': 'U', 'Ứ': 'U', 'Ừ': 'U', 'Ử': 'U', 'Ữ': 'U', 'Ự': 'U',
-        'Ý': 'Y', 'Ỳ': 'Y', 'Ỷ': 'Y', 'Ỹ': 'Y', 'Ỵ': 'Y',
-        'Đ': 'D'
-      };
-
-      let normalizedText = input.split('').map(char => vietnameseMap[char] || char).join('');
-
-      // Step 2: Remove duplicate spaces
-      normalizedText = normalizedText.replace(/\s+/g, ' ').trim();
-
-      return normalizedText.toLowerCase();
-    }
-
-
-  </script>
-</body>
-
+    </script>
+  </body>
 </html>
