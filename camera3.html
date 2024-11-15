@@ -11,50 +11,26 @@
         object-fit: cover;
         /* Adjusts the video to fill the area without distortion */
       }
-      canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-      }
-      .focus-box {
-        position: absolute;
-        border: 2px solid red;
-        width: 600px; /* Adjust as needed */
-        height: 400px; /* Adjust as needed */
-        top: 30%; /* Centered on canvas */
-        left: 30%;
-        /* transform: translate(-50%, -50%); */
-        box-sizing: border-box;
-      }
     </style>
   </head>
   <body>
-    <video id="video" autoplay playsinline style="display: none"></video>
+    <video id="video" autoplay playsinline></video>
     <canvas id="canvas"></canvas>
-    <div class="focus-box"></div>
-
     <script>
       const video = document.getElementById("video");
       const canvas = document.getElementById("canvas");
       const context = canvas.getContext("2d");
 
-      // Set up the camera feed
+      // Access camera with constraints
       navigator.mediaDevices
-        .getUserMedia({
-          video: {
-            facingMode: "environment", // "user" for front camera, "environment" for rear camera
-            focusMode: "manual",
-          },
-        })
+        .getUserMedia(constraints)
         .then((stream) => {
           video.srcObject = stream;
           video.play();
         })
-        .catch((error) => {
-          console.error("Error accessing the camera", error);
-        });
+        .catch((error) => console.error("Camera access failed", error));
 
-      // Draw the video onto the canvas
+      // Draw guide on canvas
       video.addEventListener("loadeddata", () => {
         canvas.width = video.videoWidth;
         canvas.height = video.videoHeight;
@@ -62,40 +38,20 @@
         function draw() {
           context.drawImage(video, 0, 0, canvas.width, canvas.height);
 
-          // Drawing the focus guide (optional: customize color/thickness)
-          const boxWidth = 300;
-          const boxHeight = 200;
+          // Draw guide box
+          const boxWidth = 300; // Adjust for ID card size
+          const boxHeight = 100;
           const boxX = (canvas.width - boxWidth) / 2;
           const boxY = (canvas.height - boxHeight) / 2;
 
-          context.strokeStyle = "#00FF00";
-          context.lineWidth = 2;
+          context.strokeStyle = "green";
+          context.lineWidth = 3;
           context.strokeRect(boxX, boxY, boxWidth, boxHeight);
 
           requestAnimationFrame(draw);
         }
 
         draw();
-      });
-
-      // Optional: Capture image within focus box when user clicks or presses a key
-      function capture() {
-        const boxWidth = 300;
-        const boxHeight = 200;
-        const boxX = (canvas.width - boxWidth) / 2;
-        const boxY = (canvas.height - boxHeight) / 2;
-
-        // Get the image data from within the focus box
-        const imageData = context.getImageData(boxX, boxY, boxWidth, boxHeight);
-
-        // Here you can further process or save imageData
-      }
-
-      // Event listener for capturing (e.g., on a button click)
-      document.addEventListener("keydown", (e) => {
-        if (e.key === "c") {
-          capture();
-        }
       });
     </script>
   </body>
