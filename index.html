@@ -19,13 +19,7 @@
           <canvas id="canvas" style="display: none"></canvas>
         </td>
         <td>
-          <img
-            id="photo"
-            alt="Your Photo"
-            width="400"
-            style="border: solid 1px green"
-            src="https://cdn.vectorstock.com/i/500p/33/47/no-photo-available-icon-default-image-symbol-vector-40343347.jpg"
-          />
+          <img id="photo" alt="Your Photo" width="400" src="" />
           <hr />
           <table>
             <tr>
@@ -60,13 +54,31 @@
           <br />
           <button id="openCameraButton">Open Camera</button>
 
-          <button id="stopCameraButton" style="margin-left: 50px">
+          <button
+            id="stopCameraButton"
+            style="margin-left: 50px; display: none"
+          >
             Stop Camera
           </button>
           <br />
           <br />
-          <button id="captureButton" style="width: 100px; height: 40px">
+          <button
+            id="captureButton"
+            style="width: 100px; height: 40px; background-color: yellow"
+          >
             Capture ID
+          </button>
+
+          <button
+            id="btnSubmitForm"
+            style="
+              width: 100px;
+              height: 40px;
+              margin-left: 50px;
+              background-color: greenyellow;
+            "
+          >
+            Save Form
           </button>
           <br />
           <br />
@@ -76,19 +88,29 @@
         </td>
       </tr>
     </table>
-    <input
-      type="hidden"
-      id="formId"
-      value="c17877ee-8342-442a-9592-78a9f5d8a364"
-    />
+    <input type="hidden" id="formId" value="865468468" />
 
     <script>
       const button = document.getElementById("openCameraButton");
+      const btnSubmitForm = document.getElementById("btnSubmitForm");
       const stopButton = document.getElementById("stopCameraButton");
       const video = document.getElementById("camera");
       const canvas = document.getElementById("canvas");
       const captureButton = document.getElementById("captureButton");
       const photo = document.getElementById("photo");
+
+      btnSubmitForm.addEventListener("click", () => {
+        let oldForm = document.getElementById("formId").value;
+        //clear form data on firebase
+        const userRef = database.ref("forms/" + oldForm);
+        userRef.remove().then(() => {
+          let newFormId = Math.random().toString().split(".")[1];
+          document.getElementById("formId").value = newFormId;
+          setTimeout(() => {
+            initFormData();
+          }, 1000);
+        });
+      });
 
       button.addEventListener("click", async () => {
         try {
@@ -658,8 +680,6 @@
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database-compat.js"></script>
     <script>
-      const _formId = document.getElementById("formId").value;
-
       // Step 1: Add Firebase configuration
       const firebaseConfig = {
         apiKey: "AIzaSyDBoXaH5iupPe2bdfYaviKff6skjbqlqbM",
@@ -677,6 +697,7 @@
 
       // Step 3: Write Data
       function initFormData() {
+        const _formId = document.getElementById("formId").value;
         firebase
           .database()
           .ref("forms/" + _formId)
@@ -693,6 +714,7 @@
 
       // Step 4: Read Data
       function checkFormData() {
+        const _formId = document.getElementById("formId").value;
         const userRef = firebase.database().ref("forms/" + _formId);
         userRef
           .once("value")
@@ -710,7 +732,9 @@
       //check if form data not init on firebase databas -> start init
       checkFormData();
       // Real-time listener for data changes at a specific path
-      const userRef = database.ref("forms/" + _formId);
+      const userRef = database.ref(
+        "forms/" + document.getElementById("formId").value
+      );
       userRef.on("value", (snapshot) => {
         const data = snapshot.val();
         if (data) {
