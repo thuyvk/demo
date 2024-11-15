@@ -109,16 +109,45 @@
       }
 
       function captureImage() {
-        canvas.width = video.videoWidth;
-        canvas.height = video.videoHeight;
-        const context = canvas.getContext("2d");
-        context.drawImage(video, 0, 0, canvas.width, canvas.height);
+        // Get the video dimensions and overlay rectangle
+        const videoBounds = video.getBoundingClientRect();
+        const overlay = document
+          .getElementById("overlay")
+          .getBoundingClientRect();
 
+        // Calculate the overlay's dimensions relative to the video
+        const scaleX = video.videoWidth / videoBounds.width;
+        const scaleY = video.videoHeight / videoBounds.height;
+
+        const cropX = (overlay.left - videoBounds.left) * scaleX;
+        const cropY = (overlay.top - videoBounds.top) * scaleY;
+        const cropWidth = overlay.width * scaleX;
+        const cropHeight = overlay.height * scaleY;
+
+        // Set the canvas dimensions to match the cropped area
+        canvas.width = cropWidth;
+        canvas.height = cropHeight;
+
+        // Draw the cropped area onto the canvas
+        const context = canvas.getContext("2d");
+        context.drawImage(
+          video,
+          cropX,
+          cropY,
+          cropWidth,
+          cropHeight, // Source area from the video
+          0,
+          0,
+          cropWidth,
+          cropHeight // Destination area on the canvas
+        );
+
+        // Get the cropped image data URL
         const imageData = canvas.toDataURL("image/png");
-        console.log("Captured Image Data URL:", imageData);
+        console.log("Cropped Image Data URL:", imageData);
 
         // Display capture status
-        status.textContent = "Image captured!";
+        status.textContent = "Cropped image captured!";
         canvas.style.display = "block";
       }
 
